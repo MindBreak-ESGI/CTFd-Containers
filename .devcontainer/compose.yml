@@ -1,0 +1,65 @@
+volumes:
+  mariadb_data:
+
+services:
+  devcontainer_ctfd_container:
+    container_name: devcontainer_ctfd_container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sleep infinity
+    volumes:
+      - ..:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  ctfd:
+    image: ctfd/ctfd
+    container_name: ctfd_dev
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=DEVELOPMENT
+      - DATABASE_URL=mysql+pymysql://ctfd:ctfd@mariadb/ctfd
+      - REDIS_URL=redis://redis:6379
+      - MAILFROM_ADDR=ctfd@mindbreak.dev
+      - MAIL_SERVER=maildev
+      - MAIL_PORT=1025
+      - LOG_FOLDER=/var/log/CTFd
+      - UPLOAD_FOLDER=/var/uploads
+      - REVERSE_PROXY=false
+      - TEMPLATES_AUTO_RELOAD=true
+      - SWAGGER_UI=true
+      - WORKERS=1
+      - ACCESS_LOG=-
+      - ERROR_LOG=-
+
+    #volumes:
+    #  - .data/CTFd/logs:/var/log/CTFd
+    #  - .data/CTFd/uploads:/var/uploads
+    #  - .:/opt/CTFd:ro
+
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  mariadb:
+    image: mariadb:11
+    container_name: mariadb
+    environment:
+      MARIADB_USER: ctfd
+      MARIADB_PASSWORD: ctfd
+      MARIADB_DATABASE: ctfd
+      MARIADB_ROOT_PASSWORD: ctfd
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
