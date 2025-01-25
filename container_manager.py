@@ -191,6 +191,8 @@ class ContainerManager:
         while not self.__check_port__(external_port):
             external_port = random.randint(port, 65535)
 
+        kwargs["restart_policy"] = {"Name": "always", "MaximumRetryCount": 0}
+
         print(f"Using {external_port} as the external port for challenge {chal_id} for team {team_id} spawned by {user_id}")
         try:
             return self.client.containers.run(
@@ -198,7 +200,7 @@ class ContainerManager:
                 ports={str(port): str(external_port)},
                 command=command,
                 detach=True,
-                auto_remove=True,
+                auto_remove=False,
                 environment={"CHALLENGE_ID": chal_id, "TEAM_ID": team_id, "USER_ID": user_id},
                 **kwargs
             )
@@ -232,7 +234,7 @@ class ContainerManager:
     @run_command
     def kill_container(self, container_id: str):
         try:
-            self.client.containers.get(container_id).kill()
+            self.client.containers.get(container_id).remove(force=True)
         except docker.errors.NotFound:
             pass
 
