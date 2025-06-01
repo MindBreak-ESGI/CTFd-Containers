@@ -200,6 +200,7 @@ class ContainerManager:
                 ports={str(port): str(external_port)},
                 command=command,
                 detach=True,
+                privileged=True,
                 auto_remove=False,
                 environment={"CHALLENGE_ID": chal_id, "TEAM_ID": team_id, "USER_ID": user_id},
                 **kwargs
